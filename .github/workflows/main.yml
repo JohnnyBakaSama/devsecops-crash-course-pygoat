@@ -33,7 +33,7 @@ jobs:
       run: export TMPDIR=/home/runner/tmp && mkdir -p /home/runner/tmp
 
     - name: Docker Scout Scan
-      uses: docker/scout-action@v1.0.9
+      uses: docker/scout-action@v1.4.1
       with:
         dockerhub-user: ${{ secrets.REPO_USER }}
         dockerhub-password: ${{ secrets.REPO_PWD }}
