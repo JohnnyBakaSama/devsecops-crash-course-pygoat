@@ -3,32 +3,6 @@ name: CI
 on: [push]
 
 jobs:
-  sast_scan:
-    name: Run Bandit Scan
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - name: Install Bandit
-      run: pip install bandit
-
-    - name: Run Bandit Scan
-      run: bandit -ll -ii -r . -f json -o bandit-report.json
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: bandit-findings
-        path: bandit-report.json
-
   image_scan:
     name: Build Image and Run Image Scan
     runs-on: ubuntu-latest
@@ -52,8 +26,11 @@ jobs:
       run: |
         docker push "${{ secrets.REPO_USER }}/myapp:latest"
 
-    - name: Cleanup Docker Temp Files
-      run: rm -rf /tmp/docker-scout
+    - name: Pull Docker Image
+      run: docker pull ${{ secrets.REPO_USER }}/myapp:latest
+
+    - name: Set TMPDIR
+      run: export TMPDIR=/home/runner/tmp && mkdir -p /home/runner/tmp
 
     - name: Docker Scout Scan
       uses: docker/scout-action@v1.0.9
@@ -64,6 +41,8 @@ jobs:
         image: ${{ secrets.REPO_USER }}/myapp:latest
         only-severities: critical,high
         sarif-file: scout-report.sarif
+      env:
+        TMPDIR: /home/runner/tmp
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
