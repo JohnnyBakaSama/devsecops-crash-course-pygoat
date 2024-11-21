@@ -43,8 +43,15 @@ jobs:
         docker_version: '20.10.7'
 
     - name: Build Docker Image
+      run: docker build -f Dockerfile -t myapp:latest .
+
+    - name: Log in to DockerHub
+      run: echo "${{ secrets.REPO_PWD }}" | docker login -u "${{ secrets.REPO_USER }}" --password-stdin
+
+    - name: Push Docker Image
       run: |
-        docker build -f Dockerfile -t myapp:latest .
+        docker tag myapp:latest "${{ secrets.REPO_USER }}/myapp:latest"
+        docker push "${{ secrets.REPO_USER }}/myapp:latest"
 
     - name: Docker Scout Scan
       uses: docker/scout-action@v1.0.9
@@ -61,4 +68,3 @@ jobs:
       with:
         name: docker-scout-findings
         path: scout-report.sarif
-
