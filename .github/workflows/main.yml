@@ -43,15 +43,17 @@ jobs:
         docker_version: '20.10.7'
 
     - name: Build Docker Image
-      run: docker build -f Dockerfile -t myapp:latest .
+      run: docker build -f Dockerfile -t ${{ secrets.REPO_USER }}/myapp:latest .
 
     - name: Log in to DockerHub
       run: echo "${{ secrets.REPO_PWD }}" | docker login -u "${{ secrets.REPO_USER }}" --password-stdin
 
     - name: Push Docker Image
       run: |
-        docker tag myapp:latest "${{ secrets.REPO_USER }}/myapp:latest"
         docker push "${{ secrets.REPO_USER }}/myapp:latest"
+
+    - name: Cleanup Docker Temp Files
+      run: rm -rf /tmp/docker-scout
 
     - name: Docker Scout Scan
       uses: docker/scout-action@v1.0.9
@@ -59,6 +61,7 @@ jobs:
         dockerhub-user: ${{ secrets.REPO_USER }}
         dockerhub-password: ${{ secrets.REPO_PWD }}
         command: quickview,cves
+        image: ${{ secrets.REPO_USER }}/myapp:latest
         only-severities: critical,high
         sarif-file: scout-report.sarif
 
